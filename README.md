@@ -11,6 +11,7 @@ A containerized Spring Boot JPA application with MySQL database, orchestrated us
 - [Prerequisites](#prerequisites)
 - [Project Structure](#project-structure)
 - [Local Development](#local-development)
+- [Jenkins setup](#jenkins-setup)
 
 
 ---
@@ -66,3 +67,36 @@ cd spring-boot-jpa-app
 # Ensure MySQL is running locally
 java -jar target/spring-boot-jpa-docker-jenkins-pipeline.jar
 ```
+---
+## Jenkins setup
+- Install Java (JDK 11+) on the local machine or VM (required for Jenkins)
+- Install and start Jenkins (default runs on port 8080)
+- Configure required plugins 
+- Set up a GitHub Webhook to automatically trigger builds on code push
+- Configure Jenkins tools:
+- JDK (Java 11)
+- Maven (3.9+)
+
+---
+## 🔄 Jenkins CI/CD Pipeline
+
+The Jenkins pipeline automates the entire build and deployment process.
+
+### Pipeline Stages
+
+```groovy
+1. Code Checkout     → Clone repository from GitHub
+2. Build Jar         → Maven clean package 
+3. Build Docker Image → Create Docker image
+4. Run Containers    → Deploy with docker compose
+```
+
+**Pipeline Script:** See `Jenkinsfile`
+
+### Manual Pipeline Trigger
+
+1. Open Jenkins Dashboard
+2. Select your pipeline job
+3. Click "Build Now"
+4. Monitor console output for each stage
+
