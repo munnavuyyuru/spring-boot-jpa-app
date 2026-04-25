@@ -6,14 +6,12 @@ A containerized Spring Boot JPA application with MySQL database, orchestrated us
 <img width="649" height="423" alt="image" src="https://github.com/user-attachments/assets/8312eab0-5e03-44fa-9f4f-7f70e6c3deb5" />
 
 ## 📋 Table of Contents
-
 - [Project Overview](#project-overview)
 - [Prerequisites](#prerequisites)
-- [Project Structure](#project-structure)
 - [Local Development](#local-development)
-- [Jenkins setup](#jenkins-setup)
-
-
+- [Jenkins CI/CD Setup & Pipeline](#jenkins-cicd-setup--pipeline)
+-  [Application API Endpoints](#application-api-endpoints)
+- [Troubleshooting](#troubleshooting)
 ---
 
 ## 🏗️ Project Overview
@@ -68,35 +66,209 @@ cd spring-boot-jpa-app
 java -jar target/spring-boot-jpa-docker-jenkins-pipeline.jar
 ```
 ---
-## Jenkins setup
-- Install Java (JDK 11+) on the local machine or VM (required for Jenkins)
-- Install and start Jenkins (default runs on port 8080)
-- Configure required plugins 
-- Set up a GitHub Webhook to automatically trigger builds on code push
-- Configure Jenkins tools:
-- JDK (Java 11)
-- Maven (3.9+)
+
+## ⚙️ Jenkins CI/CD Setup & Pipeline
+
+This section explains how to configure Jenkins and run the CI/CD pipeline for the Spring Boot application.
+
+
+#### 🚀 1. Access Jenkins
+
+Open Jenkins in your browser:
+
+http://<your-server-ip>:8080
+
+Example:
+- EC2 Public IP or local VM IP
 
 ---
-## 🔄 Jenkins CI/CD Pipeline
 
-The Jenkins pipeline automates the entire build and deployment process.
+#### 🔌 2. Install Required Plugins
 
-### Pipeline Stages
+Ensure the following plugins are installed:
+
+- Git Plugin  
+- Maven Integration Plugin  
+- Docker Plugin  
+- Pipeline Plugin  
+
+---
+
+#### 🛠️ 3. Configure Jenkins Tools
+
+Go to:
+
+Manage Jenkins → Tools
+
+Configure:
+
+- JDK (Java 11+)  
+- Maven (3.9+)  
+
+---
+
+#### 📦 4. Create Pipeline Job
+
+- Go to Jenkins Dashboard  
+- Click New Item  
+- Enter name: `spring_app`  
+- Select Pipeline  
+- Click OK  
+
+---
+
+#### 🔗 5. Configure GitHub Repository
+
+**In General:**
+- Enable GitHub project  
+- Add repository URL:  
+https://github.com/munnavuyyuru/spring-boot-jpa-app.git  
+
+**In Build Triggers:**
+- Enable:
+  - GitHub hook trigger for GITScm polling ✅  
+
+---
+
+#### 🔐 6. Configure Credentials in Jenkins
+
+**Docker Hub Credentials**
+
+Go to:
+
+Manage Jenkins → Credentials → Global
+
+Add credentials:
+
+- ID: `dockerhubCred`  
+- Username: `<your-dockerhub-username>`  
+- Password: `<your-dockerhub-personal-access-token>`  
+
+---
+
+#### 🔗 7. Configure GitHub Webhook
+
+In your GitHub repository:
+
+- Go to Settings → Webhooks → Add Webhook  
+
+Payload URL:
+`http://<your-ec2-ip>:8080/github-webhook/`
+
+Content Type:
+`application/json`
+
+Events:
+- Just the push event (recommended)
+- (or “Send me everything” if needed)
+
+Click Add webhook
+
+Note:
+- If you are not using HTTPS, select the non-SSL option.
+
+---
+
+#### 🔄 8. Jenkins Pipeline Execution
+
+Pipeline stages:
 
 ```groovy
-1. Code Checkout     → Clone repository from GitHub
-2. Build Jar         → Maven clean package 
-3. Build Docker Image → Create Docker image
-4. Run Containers    → Deploy with docker compose
+1. Code Checkout       → Clone repository from GitHub  
+2. Build Jar           → Maven clean package  
+3. Build Docker Image  → Create Docker image  
+4. Run Containers      → Deploy using docker compose  
+5. Push to Docker Hub  → Push latest image
 ```
 
-**Pipeline Script:** See `Jenkinsfile`
+Pipeline script is defined in the Jenkinsfile.
 
-### Manual Pipeline Trigger
+---
 
-1. Open Jenkins Dashboard
-2. Select your pipeline job
-3. Click "Build Now"
-4. Monitor console output for each stage
+#### ▶️ 9. Trigger the Pipeline
 
+Automatic Trigger (Recommended):
+- Push code to GitHub → Jenkins runs automatically via webhook  
+
+Manual Trigger:
+- Open Jenkins Dashboard  
+- Select `spring_app` job  
+- Click Build Now  
+
+---
+
+## 📊 10. Pipeline Execution Output
+---
+### Jenkins Pipeline View
+<img width="970" height="385" alt="jenkins pipeline" src="https://github.com/user-attachments/assets/56b44b9e-7cab-4214-836e-dc41c708882a" />
+
+---
+
+### Docker Hub Image Repository
+<img width="1318" height="516" alt="dockerhub" src="https://github.com/user-attachments/assets/11f8fd58-b07b-4540-9bd0-c726c3d047d3" />
+
+---
+
+### Running Containers (docker ps)
+<img width="1040" height="130" alt="image" src="https://github.com/user-attachments/assets/11bcc2e9-209b-4af7-999d-8043375b42f5" />
+
+---
+
+#### ✅ Final Outcome
+
+- Code pushed to GitHub  
+- Jenkins automatically builds the application  
+- Docker image created and pushed to Docker Hub  
+- Containers deployed successfully using Docker Compose
+
+## 🌐 Application API Endpoints
+
+After successful deployment, the Spring Boot application exposes the following REST APIs.
+
+```groovy
+🔗 Base URL
+http://<ec2-ip>:8080/spring-boot-jenkins
+
+📥 Add Student
+POST /addStudent
+
+Full URL:
+http://<ec2-ip>:8080/spring-boot-jenkins/addStudent
+
+Description:
+- Adds a new student record into the database.
+
+📄 Get All Students
+GET /findAllStudent
+
+Full URL:
+http://<ec2-ip>:8080/spring-boot-jenkins/findAllStudent
+
+Description:
+- Retrieves all student records from the database.
+
+ 🔍 Get Student By ID
+GET /findById/{id}
+
+Example URL:
+http://<ec2-ip>:8080/spring-boot-jenkins/findById/1
+
+Description:
+- Fetches a specific student record using its ID.
+```
+
+## ⚠️ Troubleshooting
+
+```groovy
+### Jenkins build fails
+- Check Maven installation
+- Verify JDK configuration
+
+### Docker container not starting
+- Check port conflicts
+- Run `docker logs <container-id>`
+
+### Webhook not triggering
+- Verify GitHub webhook URL
+- Check Jenkins public accessibility
+```
