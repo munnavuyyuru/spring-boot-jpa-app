@@ -27,6 +27,20 @@ pipeline {
                 sh "docker build -t spring_app ."
             }
         }
+
+        stage('Push to DockerHub') {
+            steps {
+                withCredentials([usernamePassword(
+                    credentialsId: "DockerHubCred",
+                    usernameVariable: "dockerHubUser",
+                    passwordVariable: "dockerHubPass"
+                )]) {
+                    sh "docker tag spring_app:latest ${dockerHubUser}/spring_app:latest"
+                    sh "docker login -u ${dockerHubUser} -p ${dockerHubPass}"
+                    sh "docker push ${dockerHubUser}/spring_app:latest"
+                }
+            }
+        }
         
         stage('Run Containers ') {
             steps {
